@@ -7,6 +7,7 @@ package it.polito.tdp.food;
 import java.net.URL;
 import java.util.ResourceBundle;
 import it.polito.tdp.food.model.Model;
+import it.polito.tdp.food.model.Portion;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -17,6 +18,7 @@ import javafx.scene.control.TextField;
 public class FoodController {
 	
 	private Model model;
+	private boolean grafoCreato = false;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -40,7 +42,7 @@ public class FoodController {
     private Button btnCammino; // Value injected by FXMLLoader
 
     @FXML // fx:id="boxPorzioni"
-    private ComboBox<?> boxPorzioni; // Value injected by FXMLLoader
+    private ComboBox<String> boxPorzioni; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtResult"
     private TextArea txtResult; // Value injected by FXMLLoader
@@ -48,20 +50,65 @@ public class FoodController {
     @FXML
     void doCammino(ActionEvent event) {
     	txtResult.clear();
-    	txtResult.appendText("Cerco cammino peso massimo...");
+    	if(!this.grafoCreato) {
+    		this.txtResult.appendText("Crea il grafo prima\n");
+    		return;
+    	}
+    	String partenza = this.boxPorzioni.getValue();
+    	if(partenza==null) {
+    		this.txtResult.appendText("Selezionare la porzione di partenza del cammino\n");
+    		return;
+    	}
+    	if(this.txtPassi.getText().equals("")) {
+    		this.txtResult.appendText("Selezionare il numero di passi\n");
+    		return;
+    	}
+    	int N = 0;
+    	try {
+    		N = Integer.parseInt(this.txtPassi.getText());
+    	}catch(NumberFormatException e) {
+    		this.txtResult.appendText("Il numero di passi deve essere un intero positivo\n");
+    		return;
+    	}
+    	this.txtResult.appendText(this.model.getCammino(partenza, N));
     }
 
     @FXML
     void doCorrelate(ActionEvent event) {
     	txtResult.clear();
-    	txtResult.appendText("Cerco porzioni correlate...");
+    	if(!this.grafoCreato) {
+    		this.txtResult.appendText("Crea il grafo prima\n");
+    		return;
+    	}
+    	String portion = this.boxPorzioni.getValue();
+    	if(portion==null) {
+    		this.txtResult.appendText("Selezionare la porzione\n");
+    		return;
+    	}
+    	
+    	this.txtResult.appendText(this.model.getCorrelate(portion));
     	
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
     	txtResult.clear();
-    	txtResult.appendText("Creazione grafo...");
+    	int c=0;
+    	if(this.txtCalorie.getText().equals("")) {
+    		this.txtResult.appendText("Inserisci le calorie\n");
+    		return;
+    	}
+    	try {
+    		c = Integer.parseInt(this.txtCalorie.getText());
+    	}catch(NumberFormatException e) {
+    		this.txtResult.appendText("Le calorie devono essere un numero intero positivo");
+    		return;
+    	}
+
+    	this.model.creaGrafo(c);
+    	grafoCreato = true;
+    	txtResult.appendText("Grafo creato con "+this.model.getNumVertex()+" veritici e "+this.model.getNumEdges()+" archi\n");
+    	this.boxPorzioni.getItems().addAll(this.model.getPortions());
     	
     }
 
